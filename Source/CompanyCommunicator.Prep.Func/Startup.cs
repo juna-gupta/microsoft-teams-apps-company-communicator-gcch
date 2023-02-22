@@ -108,7 +108,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func
             builder.Services.AddServiceBusClient(useManagedIdentity);
 
             // Set current culture.
-            var culture = Environment.GetEnvironmentVariable("i18n:DefaultCulture");
+            var culture = "En-US";
             CultureInfo.DefaultThreadCurrentCulture = new CultureInfo(culture);
             CultureInfo.DefaultThreadCurrentUICulture = new CultureInfo(culture);
 
