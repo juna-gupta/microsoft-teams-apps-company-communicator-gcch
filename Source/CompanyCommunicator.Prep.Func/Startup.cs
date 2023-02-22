@@ -167,6 +167,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func
             builder.Services.AddOptions<ConfidentialClientApplicationOptions>().
                 Configure<IConfiguration>((confidentialClientApplicationOptions, configuration) =>
                 {
+                    confidentialClientApplicationOptions.AzureCloudInstance = AzureCloudInstance.AzureUsGovernment;
                     confidentialClientApplicationOptions.ClientId = configuration.GetValue<string>("GraphAppId");
                     confidentialClientApplicationOptions.ClientSecret = configuration.GetValue<string>("GraphAppPassword", string.Empty);
                     confidentialClientApplicationOptions.TenantId = configuration.GetValue<string>("TenantId");
@@ -182,7 +183,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func
             // Add Graph Clients.
             builder.Services.AddSingleton<IGraphServiceClient>(
                 serviceProvider =>
-                new GraphServiceClient(serviceProvider.GetRequiredService<IAuthenticationProvider>()));
+                new GraphServiceClient("https://graph.microsoft.us/v1.0", serviceProvider.GetRequiredService<IAuthenticationProvider>()));
 
             // Add Service Factory
             builder.Services.AddSingleton<IGraphServiceFactory, GraphServiceFactory>();
