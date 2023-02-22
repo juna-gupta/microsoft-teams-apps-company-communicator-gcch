@@ -115,9 +115,9 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func
             // Add bot services.
             builder.Services.AddSingleton<UserAppCredentials>();
             builder.Services.AddSingleton<AuthorAppCredentials>();
-            builder.Services.AddSingleton<ICredentialProvider, ConfigurationCredentialProvider>();
-            builder.Services.AddSingleton<ICCBotFrameworkHttpAdapter, CCBotFrameworkHttpAdapter>();
-            builder.Services.AddSingleton<BotFrameworkHttpAdapter>();
+            builder.Services.AddSingleton<ServiceClientCredentialsFactory, ConfigurationCredentialProvider>();
+            builder.Services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
+            builder.Services.AddSingleton<CCBotAdapterBase, CCBotAdapter>();
 
             // Add repositories.
             builder.Services.AddSingleton<INotificationDataRepository, NotificationDataRepository>();
