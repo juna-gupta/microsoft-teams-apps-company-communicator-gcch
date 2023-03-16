@@ -19,6 +19,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func
     using Microsoft.Identity.Client;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Adapter;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Clients;
+    using Microsoft.Teams.Apps.CompanyCommunicator.Common.Configuration;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Extensions;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.ExportData;
@@ -62,6 +63,9 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func
                     repositoryOptions.EnsureTableExists =
                         !configuration.GetValue<bool>("IsItExpectedThatTableAlreadyExists", false);
                 });
+
+            builder.Services.AddAppConfiguration(builder.GetContext().Configuration);
+
             builder.Services.AddOptions<BotOptions>()
                 .Configure<IConfiguration>((botOptions, configuration) =>
                 {
@@ -167,7 +171,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func
             builder.Services.AddOptions<ConfidentialClientApplicationOptions>().
                 Configure<IConfiguration>((confidentialClientApplicationOptions, configuration) =>
                 {
-                    confidentialClientApplicationOptions.AzureCloudInstance = AzureCloudInstance.AzureUsGovernment;
+                    confidentialClientApplicationOptions.AzureCloudInstance = this.GetAzureCloudInstance(configuration);
                     confidentialClientApplicationOptions.ClientId = configuration.GetValue<string>("GraphAppId");
                     confidentialClientApplicationOptions.ClientSecret = configuration.GetValue<string>("GraphAppPassword", string.Empty);
                     confidentialClientApplicationOptions.TenantId = configuration.GetValue<string>("TenantId");
@@ -183,7 +187,9 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func
             // Add Graph Clients.
             builder.Services.AddSingleton<IGraphServiceClient>(
                 serviceProvider =>
-                new GraphServiceClient("https://graph.microsoft.us/v1.0", serviceProvider.GetRequiredService<IAuthenticationProvider>()));
+                new GraphServiceClient(
+                    serviceProvider.GetRequiredService<IAppConfiguration>().GraphBaseUrl,
+                    serviceProvider.GetRequiredService<IAuthenticationProvider>()));
 
             // Add Service Factory
             builder.Services.AddSingleton<IGraphServiceFactory, GraphServiceFactory>();
@@ -193,6 +199,16 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func
             builder.Services.AddScoped<IGroupMembersService>(sp => sp.GetRequiredService<IGraphServiceFactory>().GetGroupMembersService());
             builder.Services.AddScoped<IAppManagerService>(sp => sp.GetRequiredService<IGraphServiceFactory>().GetAppManagerService());
             builder.Services.AddScoped<IChatsService>(sp => sp.GetRequiredService<IGraphServiceFactory>().GetChatsService());
+        }
+
+        private AzureCloudInstance GetAzureCloudInstance(IConfiguration configuration)
+        {
+            var teamsEnv = configuration.GetValue<string>("TeamsEnvironment", "Commercial");
+            return teamsEnv switch
+            {
+                "GCCH" or "DOD" => AzureCloudInstance.AzureUsGovernment,
+                _ => AzureCloudInstance.AzurePublic,
+            };
         }
     }
 }

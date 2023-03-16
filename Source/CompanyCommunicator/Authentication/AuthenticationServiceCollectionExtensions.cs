@@ -13,6 +13,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Authentication
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Identity.Client;
     using Microsoft.Identity.Web;
     using Microsoft.IdentityModel.Tokens;
 
@@ -89,7 +90,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Authentication
                  confidentialClientApplicationOptions =>
                  {
                      configuration.Bind("AzureAd", confidentialClientApplicationOptions);
-                     confidentialClientApplicationOptions.AzureCloudInstance = Identity.Client.AzureCloudInstance.AzureUsGovernment;
+                     confidentialClientApplicationOptions.AzureCloudInstance = GetAzureCloudInstance(configuration);
                  })
                  .AddInMemoryTokenCaches();
         }
@@ -222,6 +223,20 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Authentication
             }
 
             return false;
+        }
+
+        private static AzureCloudInstance GetAzureCloudInstance(IConfiguration configuration)
+        {
+            var teamsEnv = configuration.GetValue<string>("TeamsEnvironment", "Commercial");
+            switch (teamsEnv)
+            {
+                case "GCCH":
+                case "DOD":
+                    return AzureCloudInstance.AzureUsGovernment;
+                case "Commercial":
+                default:
+                    return AzureCloudInstance.AzurePublic;
+            }
         }
     }
 }

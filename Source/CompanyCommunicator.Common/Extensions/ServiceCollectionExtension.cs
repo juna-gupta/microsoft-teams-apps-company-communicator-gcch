@@ -14,6 +14,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Common.Extensions
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Options;
     using Microsoft.Identity.Client;
+    using Microsoft.Teams.Apps.CompanyCommunicator.Common.Configuration;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Secrets;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Services.CommonBot;
 
@@ -90,11 +91,12 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Common.Extensions
                 {
                     var options = provider.GetRequiredService<IOptions<ConfidentialClientApplicationOptions>>();
                     var certificateProvider = provider.GetRequiredService<ICertificateProvider>();
+                    var appConfiguration = provider.GetRequiredService<IAppConfiguration>();
                     var cert = certificateProvider.GetCertificateAsync(options.Value.ClientId).Result;
                     return ConfidentialClientApplicationBuilder
                         .Create(options.Value.ClientId)
                         .WithCertificate(cert)
-                        .WithAuthority(new Uri($"https://login.microsoftonline.us/{options.Value.TenantId}"))
+                        .WithAuthority(new Uri(appConfiguration.AuthorityUri))
                         .Build();
                 });
             }
@@ -103,13 +105,26 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Common.Extensions
                 services.AddSingleton<IConfidentialClientApplication>(provider =>
                 {
                     var options = provider.GetRequiredService<IOptions<ConfidentialClientApplicationOptions>>();
+                    var appConfiguration = provider.GetRequiredService<IAppConfiguration>();
                     return ConfidentialClientApplicationBuilder
                         .Create(options.Value.ClientId)
                         .WithClientSecret(options.Value.ClientSecret)
-                        .WithAuthority(new Uri($"https://login.microsoftonline.us/{options.Value.TenantId}"))
+                        .WithAuthority(new Uri(appConfiguration.AuthorityUri))
                         .Build();
                 });
             }
+        }
+
+        /// <summary>
+        /// Adds relevant App configurations for Teams environment.
+        /// </summary>
+        /// <param name="services">Serivce collection.</param>
+        /// <param name="configuration">Configuration.</param>
+        public static void AddAppConfiguration(this IServiceCollection services, IConfiguration configuration)
+        {
+            var env = configuration.GetValue<string>("TeamsEnvironment", "Commerical"/*default*/);
+            var tenantId = configuration.GetValue<string>("AzureAd.TenantId");
+            services.AddSingleton<IAppConfiguration>(new ConfigurationFactory(tenantId).GetAppConfiguration(env));
         }
 
         private static Uri GetBlobContainerUri(string storageAccountName)

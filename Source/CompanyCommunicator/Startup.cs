@@ -23,6 +23,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator
     using Microsoft.Teams.Apps.CompanyCommunicator.Bot;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Adapter;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Clients;
+    using Microsoft.Teams.Apps.CompanyCommunicator.Common.Configuration;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Extensions;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Repositories.ExportData;
@@ -77,6 +78,9 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator
                 {
                     Startup.FillAuthenticationOptionsProperties(authenticationOptions, configuration);
                 });
+
+            services.AddAppConfiguration(this.Configuration);
+
             services.AddOptions<BotOptions>()
                 .Configure<IConfiguration>((botOptions, configuration) =>
                 {
@@ -184,8 +188,10 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator
             services.AddScoped<IAuthenticationProvider, GraphTokenProvider>();
             services.AddScoped<IHttpProvider, HttpProvider>();
 
-            var graphBaseUrl = this.Configuration.GetValue<string>("GraphBaseUrl", "https://graph.microsoft.us/v1.0");
-            services.AddScoped<IGraphServiceClient>(sp => new GraphServiceClient(graphBaseUrl, sp.GetService<IAuthenticationProvider>(), sp.GetService<IHttpProvider>()));
+            services.AddScoped<IGraphServiceClient>(sp => new GraphServiceClient(
+                sp.GetService<IAppConfiguration>().GraphBaseUrl,
+                sp.GetService<IAuthenticationProvider>(),
+                sp.GetService<IHttpProvider>()));
             services.AddScoped<IGraphServiceFactory, GraphServiceFactory>();
             services.AddScoped<IGroupsService>(sp => sp.GetRequiredService<IGraphServiceFactory>().GetGroupsService());
             services.AddScoped<IAppCatalogService>(sp => sp.GetRequiredService<IGraphServiceFactory>().GetAppCatalogService());
