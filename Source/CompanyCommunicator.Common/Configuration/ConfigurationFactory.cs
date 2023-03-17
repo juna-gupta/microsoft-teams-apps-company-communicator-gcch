@@ -13,7 +13,7 @@
         /// <param name="tenantId">Tenant id.</param>
         public ConfigurationFactory(string tenantId)
         {
-            this.tenantId = tenantId;
+            this.tenantId = tenantId ?? throw new System.ArgumentNullException(nameof(tenantId));
         }
 
         /// <summary>
