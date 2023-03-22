@@ -21,15 +21,17 @@
         /// </summary>
         /// <param name="env">Teams environment.</param>
         /// <returns>App configurstion.</returns>
-        public IAppConfiguration GetAppConfiguration(string env)
+        public IAppConfiguration GetAppConfiguration(TeamsEnvironment env)
         {
             switch (env)
             {
-                case "GCCH":
+                case TeamsEnvironment.Commercial:
+                case TeamsEnvironment.GCC:
+                    return new CommericalConfiguration(this.tenantId);
+                case TeamsEnvironment.GCCH:
                     return new GCCHConfiguration(this.tenantId);
-                case "DOD":
+                case TeamsEnvironment.DOD:
                     return new DODConfiguration(this.tenantId);
-                case "Commercial":
                 default:
                     return new CommericalConfiguration(this.tenantId);
             }

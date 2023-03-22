@@ -26,15 +26,15 @@
         public string AuthorityUri => $"https://login.microsoftonline.us/{this.tenantId}";
 
         /// <inheritdoc/>
-        public string GraphBaseUrl => "https://graph.microsoft.us/v1.0";
+        public string GraphBaseUrl => "https://dod-graph.microsoft.us/v1.0";
 
         /// <inheritdoc/>
-        public string GraphDefaultScope => "https://graph.microsoft.us/.default";
+        public string GraphDefaultScope => "https://dod-graph.microsoft.us/.default";
 
         /// <inheritdoc/>
-        public string GraphUserReadScope => "https://graph.microsoft.us/User.Read openid profile";
+        public string GraphUserReadScope => "https://dod-graph.microsoft.us/User.Read openid profile";
 
         /// <inheritdoc/>
-        public string TeamsLicenseId => "9953b155-8aef-4c56-92f3-72b0487fce41"; // TODO - confirm this.
+        public string TeamsLicenseId => "fd500458-c24c-478e-856c-a6067a8376cd";
     }
 }

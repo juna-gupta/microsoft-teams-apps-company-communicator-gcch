@@ -17,6 +17,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Graph;
     using Microsoft.Identity.Client;
+    using Microsoft.Teams.Apps.CompanyCommunicator.Common;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Adapter;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Clients;
     using Microsoft.Teams.Apps.CompanyCommunicator.Common.Configuration;
@@ -171,7 +172,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func
             builder.Services.AddOptions<ConfidentialClientApplicationOptions>().
                 Configure<IConfiguration>((confidentialClientApplicationOptions, configuration) =>
                 {
-                    confidentialClientApplicationOptions.AzureCloudInstance = this.GetAzureCloudInstance(configuration);
+                    confidentialClientApplicationOptions.AzureCloudInstance = configuration.GetAzureCloudInstance();
                     confidentialClientApplicationOptions.ClientId = configuration.GetValue<string>("GraphAppId");
                     confidentialClientApplicationOptions.ClientSecret = configuration.GetValue<string>("GraphAppPassword", string.Empty);
                     confidentialClientApplicationOptions.TenantId = configuration.GetValue<string>("TenantId");
@@ -199,16 +200,6 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Prep.Func
             builder.Services.AddScoped<IGroupMembersService>(sp => sp.GetRequiredService<IGraphServiceFactory>().GetGroupMembersService());
             builder.Services.AddScoped<IAppManagerService>(sp => sp.GetRequiredService<IGraphServiceFactory>().GetAppManagerService());
             builder.Services.AddScoped<IChatsService>(sp => sp.GetRequiredService<IGraphServiceFactory>().GetChatsService());
-        }
-
-        private AzureCloudInstance GetAzureCloudInstance(IConfiguration configuration)
-        {
-            var teamsEnv = configuration.GetValue<string>("TeamsEnvironment", "Commercial");
-            return teamsEnv switch
-            {
-                "GCCH" or "DOD" => AzureCloudInstance.AzureUsGovernment,
-                _ => AzureCloudInstance.AzurePublic,
-            };
         }
     }
 }

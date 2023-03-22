@@ -16,6 +16,8 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Authentication
     using Microsoft.Identity.Client;
     using Microsoft.Identity.Web;
     using Microsoft.IdentityModel.Tokens;
+    using Microsoft.Teams.Apps.CompanyCommunicator.Common;
+    using Microsoft.Teams.Apps.CompanyCommunicator.Common.Extensions;
 
     /// <summary>
     /// Extension class for registering auth services in DI container.
@@ -90,7 +92,7 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Authentication
                  confidentialClientApplicationOptions =>
                  {
                      configuration.Bind("AzureAd", confidentialClientApplicationOptions);
-                     confidentialClientApplicationOptions.AzureCloudInstance = GetAzureCloudInstance(configuration);
+                     confidentialClientApplicationOptions.AzureCloudInstance = configuration.GetAzureCloudInstance();
                  })
                  .AddInMemoryTokenCaches();
         }
@@ -223,20 +225,6 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Authentication
             }
 
             return false;
-        }
-
-        private static AzureCloudInstance GetAzureCloudInstance(IConfiguration configuration)
-        {
-            var teamsEnv = configuration.GetValue<string>("TeamsEnvironment", "Commercial");
-            switch (teamsEnv)
-            {
-                case "GCCH":
-                case "DOD":
-                    return AzureCloudInstance.AzureUsGovernment;
-                case "Commercial":
-                default:
-                    return AzureCloudInstance.AzurePublic;
-            }
         }
     }
 }

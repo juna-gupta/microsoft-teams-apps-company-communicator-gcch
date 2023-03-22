@@ -122,9 +122,37 @@ namespace Microsoft.Teams.Apps.CompanyCommunicator.Common.Extensions
         /// <param name="configuration">Configuration.</param>
         public static void AddAppConfiguration(this IServiceCollection services, IConfiguration configuration)
         {
-            var env = configuration.GetValue<string>("TeamsEnvironment", "Commerical"/*default*/);
-            var tenantId = configuration.GetValue<string>("AzureAd.TenantId");
+            var tenantId = configuration.GetValue<string>("AzureAd:TenantId");
+            var env = configuration.GetTeamsEnvironment();
             services.AddSingleton<IAppConfiguration>(new ConfigurationFactory(tenantId).GetAppConfiguration(env));
+        }
+
+        public static AzureCloudInstance GetAzureCloudInstance(this IConfiguration configuration)
+        {
+            var teamsEnv = configuration.GetTeamsEnvironment();
+            switch (teamsEnv)
+            {
+                case TeamsEnvironment.Commercial:
+                case TeamsEnvironment.GCC:
+                    return AzureCloudInstance.AzurePublic;
+                case TeamsEnvironment.GCCH:
+                case TeamsEnvironment.DOD:
+                    return AzureCloudInstance.AzureUsGovernment;
+                default:
+                    return AzureCloudInstance.AzurePublic;
+            }
+        }
+
+        /// <summary>
+        /// Reads Teams environment from the configuration.
+        /// </summary>
+        /// <param name="configuration">Configuration.</param>
+        /// <returns>Teams environemnt.</returns>
+        public static TeamsEnvironment GetTeamsEnvironment(this IConfiguration configuration)
+        {
+            var envString = configuration.GetValue<string>("TeamsEnvironment", "Commerical"/*default*/);
+            Enum.TryParse(envString, out TeamsEnvironment teamsEnvironment);
+            return teamsEnvironment;
         }
 
         private static Uri GetBlobContainerUri(string storageAccountName)
